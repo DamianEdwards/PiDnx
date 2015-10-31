@@ -99,11 +99,12 @@ Active Version           Runtime Architecture Location                      Alia
 
 ## Creating and publishing your DNX application
 Let's create an application:
+
 1. Use Visual Studio 2015 RC to create a new ASP.NET 5 application using the Empty project template.
-1. Open the solution's `global.json` file and change the `sdk` property to match the version you installed using `dnvm` in the previous section (hint: it's listed in the output of `dnvm list` on your dev machine).
-1. Close and re-open the solution to allow Visual Studio to load the correct version of DNX based on your change to `global.json`.
-1. Open the project's `project.json` file and change the versions of the listed dependencies from "1.0.0-beta4" to "1.0.0-*". This will ensure the latest versions of the packages are restored.
-1. Go to the root of the *solution folder* for the project and add a `nuget.config` file, pasting in the following configuration which enables the ASP.NET 5 dev feed, containing the latest drops from our build servers:
+2. Open the solution's `global.json` file and change the `sdk` property to match the version you installed using `dnvm` in the previous section (hint: it's listed in the output of `dnvm list` on your dev machine).
+3. Close and re-open the solution to allow Visual Studio to load the correct version of DNX based on your change to `global.json`.
+4. Open the project's `project.json` file and change the versions of the listed dependencies from "1.0.0-beta4" to "1.0.0-*". This will ensure the latest versions of the packages are restored.
+5. Go to the root of the *solution folder* for the project and add a `nuget.config` file, pasting in the following configuration which enables the ASP.NET 5 dev feed, containing the latest drops from our build servers:
   ``` xml
   <?xml version="1.0" encoding="utf-8"?>
   <configuration>
@@ -113,50 +114,52 @@ Let's create an application:
     </packageSources>
   </configuration>
   ```
-1. Force a package restore either by touching and saving the `project.json` file, or right-mouse clicking on the project in Solution Explorer and choosing "Restore Packages". Open the References node and ensure all the packages listed are from the same release (e.g. 1.0.0-**beta6**-[build number] at the time of writing).
-1. Run the application (Ctrl+F5) and ensure you see the "Hello World" message in your browser.
-1. At this stage, the application will run on localhost, but when on our Pi we'll want it to respond to remote requests, so let's make it easier to change the HTTP addresses it binds to after we publish it by externalizing the server configuration.
-1. Open the `project.json` file and change the `"web"` command to get its arguments from a `hosting.ini` file:
+6. Force a package restore either by touching and saving the `project.json` file, or right-mouse clicking on the project in Solution Explorer and choosing "Restore Packages". Open the References node and ensure all the packages listed are from the same release (e.g. 1.0.0-**beta6**-[build number] at the time of writing).
+7. Run the application (Ctrl+F5) and ensure you see the "Hello World" message in your browser.
+8. At this stage, the application will run on localhost, but when on our Pi we'll want it to respond to remote requests, so let's make it easier to change the HTTP addresses it binds to after we publish it by externalizing the server configuration.
+9. Open the `project.json` file and change the `"web"` command to get its arguments from a `hosting.ini` file:
   ``` JSON
   "web": "Microsoft.AspNet.Hosting --config hosting.ini"
   ```
-1. Create the `hosting.ini` file in the root of the project and paste the following configuration values in:
+10. Create the `hosting.ini` file in the root of the project and paste the following configuration values in:
   ``` INI
   server=Microsoft.AspNet.Server.WebListener
   server.urls=http://localhost:5000
   ```
-1. Select the `web` command from the Debug/Launch button on the toolbar and run the application again. This should launch a command window with a message stating the web server was successfully started.
-1. Open your browser and navigate to http://localhost:5000/ to ensure your application works using the `WebListener` server with the new configuration.
+11. Select the `web` command from the Debug/Launch button on the toolbar and run the application again. This should launch a command window with a message stating the web server was successfully started.
+12. Open your browser and navigate to http://localhost:5000/ to ensure your application works using the `WebListener` server with the new configuration.
 
 Now we have an application ready to package up for deployment to the Pi.
 
 1. Open a command prompt on your dev machine and navigate to the folder containing your application.
-1. Run `dnvm list` and note the version number for the ARM DNX you installed ealier, e.g.  1.0.0-beta6-12082
-1. Run the following command to compile and publish the application, along with the DNX, to a folder on your dev machine. Ensure the version from the previous step matches the one in the value you pass to the `--runtime` argument. The value should exactly match the runtime's folder name in your `%USERPROFILE%\.dnx\runtimes` folder:
+2. Run `dnvm list` and note the version number for the ARM DNX you installed ealier, e.g.  1.0.0-beta6-12082
+3. Run the following command to compile and publish the application, along with the DNX, to a folder on your dev machine. Ensure the version from the previous step matches the one in the value you pass to the `--runtime` argument. The value should exactly match the runtime's folder name in your `%USERPROFILE%\.dnx\runtimes` folder:
   ```
   dnu publish --out C:\publish\DnxPi --no-source --runtime dnx-coreclr-win-arm.1.0.0-beta6-12082
   ```
-1. Navigate to the publish location and dive down into the structure to find the `root` folder in the package folder your application was compiled into, e.g. `C:\publish\DnxPi\approot\packages\DnxPi\1.0.0\root`. This folder should contain the `hosting.ini` file you created earlier.
-1. Open the `hosting.ini` file and change the URL the application listens on to match all host names:
+4. Navigate to the publish location and dive down into the structure to find the `root` folder in the package folder your application was compiled into, e.g. `C:\publish\DnxPi\approot\packages\DnxPi\1.0.0\root`. This folder should contain the `hosting.ini` file you created earlier.
+5. Open the `hosting.ini` file and change the URL the application listens on to match all host names:
   ```
   server.urls=http://*:5000
   ```
-1. Open the UNC share to your Pi in Explorer and copy the published app over to a suitable place, e.g. in the `C:\PROGRAMS` folder. *Tip: Right-mouse click on your Pi in the IoT Watcher app to quickly open the UNC share*
+6. Open the UNC share to your Pi in Explorer and copy the published app over to a suitable place, e.g. in the `C:\PROGRAMS` folder. *Tip: Right-mouse click on your Pi in the IoT Watcher app to quickly open the UNC share*
 
 ## Opening a port in the firewall on your Pi
 You're going to be browsing to your DNX application from a machine other than the Pi so you'll need to enable remote access by adding a rule to the firewall:
 1. Open a remote PowerShell session to your Pi with an account with Administrator rights, e.g. the account you created eariler.
-1. Run the following command:
+
+2. Run the following command:
    ```
    netsh advfirewall firewall add rule name="DNX Web Server port" dir=in action=allow protocol=TCP localport=5000
    ```
 
 ## Running your DNX application on the Pi
 Your application is now deployed and ready to go so let's run it!
+
 1. Open a remote PowerShell session to your Pi with an account with Administrator rights, e.g. the account you created eariler.
-1. Navigate to the application folder on the Pi, e.g. `C:\PROGRAMS\DnxPi`
-1. Run `web.cmd` and wait... you should see a message saying the server started after 5-10 seconds
-1. Open a browser and point it at your Pi and port 5000, e.g. http://Damian-Pi2:5000/
+2. Navigate to the application folder on the Pi, e.g. `C:\PROGRAMS\DnxPi`
+3. Run `web.cmd` and wait... you should see a message saying the server started after 5-10 seconds
+4. Open a browser and point it at your Pi and port 5000, e.g. http://Damian-Pi2:5000/
 
 At this point you should see the familiar "Hello World!" message in your browser. If you don't, I'm sorry. Either you made a mistake in following this guide, I made a mistake in writing it, or something environmental (maybe cosmic rays?) is spoiling your fun. Enjoy debugging it and when you figure it out, [let me know](https://twitter.com/DamianEdwards), so I can update this guide for others.
 
